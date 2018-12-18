@@ -9,9 +9,9 @@
 安装源码包通常需要以下3个步骤：
 
     ./configure:这一步可以定制功能，加上相应的选项即可，具体有什么选项可以通过命令./configure –help来查看。这一步会自动检测你的Linux系统与相关的套件是否有编译该源码包时所需要的库，因为一旦缺少某个库，就不能完成编译。只有检测通过后，才回生成Makefile文件。
-    
+
     make:使用这个命令，会根据Makefile文件中预设的参数进行编译，这一步其实就是gcc在工作了
-    
+
     make install：这一步是安装步骤，用于创建相关软件的存放目录和配置文件。
 
 对于以上3个步骤，并不是所有的源码包文件都一样，也就是说，源码包的安装并没有标准的安装步骤。这就需要拿到源码包后，进入目录，找到相关的帮助文档（通常，会以INSTALL或者READEME为文件名）。
@@ -51,6 +51,128 @@ make install
 * 停止 `../sbin/nginx -s stop`
 * 修改了配置文件后不用重启，使用 `../sbin/nginx -s reload` 重新加载配置文件
 * `ss -ntlp` 命令查看监听的端口
+
+
+#### rewrite执行过程
+
+##### 测试情景1配置如下
+
+```properties
+server {
+    rewrite_log  on;
+	listen       80;
+	server_name  www.dongdong.com;
+	rewrite     "^/aaa\.html$" /bbb.html;
+	rewrite    "^/bbb\.html$" /ccc.html;
+	location / {
+		root html;
+	}
+	location /ccc.html{
+	   rewrite "^/ccc\.html$" /ddd.html;
+	   rewrite "^/ddd\.html$" /eee.html;
+	}
+	location /eee.html{
+	  rewrite "^/eee\.html$" /fff.html;
+	}
+}
+```
+
+执行 curl www.dongdong.com/aaa.html
+
+查看日志可以看出rewrite的执行过程
+
+```
+2018/12/18 14:59:39 [notice] 8820#0: *25 "^/aaa\.html$" matches "/aaa.html", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 14:59:39 [notice] 8820#0: *25 rewritten data: "/bbb.html", args: "", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 14:59:39 [notice] 8820#0: *25 "^/bbb\.html$" matches "/bbb.html", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 14:59:39 [notice] 8820#0: *25 rewritten data: "/ccc.html", args: "", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 14:59:39 [notice] 8820#0: *25 "^/ccc\.html$" matches "/ccc.html", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 14:59:39 [notice] 8820#0: *25 rewritten data: "/ddd.html", args: "", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 14:59:39 [notice] 8820#0: *25 "^/ddd\.html$" matches "/ddd.html", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 14:59:39 [notice] 8820#0: *25 rewritten data: "/eee.html", args: "", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 14:59:39 [notice] 8820#0: *25 "^/eee\.html$" matches "/eee.html", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 14:59:39 [notice] 8820#0: *25 rewritten data: "/fff.html", args: "", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+```
+
+##### 测试情景2 配置如下
+
+```properties
+server {
+	listen       80;
+	server_name  www.dongdong.com;
+	rewrite_log on;
+
+	rewrite     "^/aaa\.html$" /bbb.html;
+	rewrite    "^/bbb\.html$" /ccc.html;
+	location / {
+		root html;
+	}
+	location /ccc.html{
+	   rewrite "^/ccc\.html$" /ddd.html last;
+	   rewrite "^/ddd\.html$" /eee.html;
+	}
+	location /ddd.html{
+	  rewrite "^/ddd\.html$" /eee.html;
+	}
+}
+```
+
+执行 curl www.dongdong.com/aaa.html
+
+查看日志可以看出rewrite的执行过程
+
+```
+2018/12/18 15:10:11 [notice] 9019#0: *26 "^/aaa\.html$" matches "/aaa.html", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 15:10:11 [notice] 9019#0: *26 rewritten data: "/bbb.html", args: "", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 15:10:11 [notice] 9019#0: *26 "^/bbb\.html$" matches "/bbb.html", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 15:10:11 [notice] 9019#0: *26 rewritten data: "/ccc.html", args: "", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 15:10:11 [notice] 9019#0: *26 "^/ccc\.html$" matches "/ccc.html", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 15:10:11 [notice] 9019#0: *26 rewritten data: "/ddd.html", args: "", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 15:10:11 [notice] 9019#0: *26 "^/ddd\.html$" matches "/ddd.html", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 15:10:11 [notice] 9019#0: *26 rewritten data: "/eee.html", args: "", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+```
+
+rewirte last:直接返回不在执行后面的rewrite，但是会重新执行server 里边的内容。
+
+
+
+##### 测试情景3 配置如下
+
+```properties
+server {
+	listen       80;
+	server_name  www.dongdong.com;
+	rewrite_log on;
+	
+	rewrite     "^/aaa\.html$" /bbb.html;
+	rewrite    "^/bbb\.html$" /ccc.html;
+	location / {
+		root html;
+	}
+	location /ccc.html{
+	   rewrite "^/ccc\.html$" /ddd.html break;
+	   rewrite "^/ddd\.html$" /eee.html;
+	}
+	location /ddd.html{
+	  rewrite "^/ddd\.html$" /eee.html;
+	}
+}
+```
+
+执行 curl www.dongdong.com/aaa.html
+
+查看日志可以看出rewrite的执行过程
+
+```
+2018/12/18 15:15:56 [notice] 9124#0: *28 "^/aaa\.html$" matches "/aaa.html", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 15:15:56 [notice] 9124#0: *28 rewritten data: "/bbb.html", args: "", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 15:15:56 [notice] 9124#0: *28 "^/bbb\.html$" matches "/bbb.html", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 15:15:56 [notice] 9124#0: *28 rewritten data: "/ccc.html", args: "", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 15:15:56 [notice] 9124#0: *28 "^/ccc\.html$" matches "/ccc.html", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+2018/12/18 15:15:56 [notice] 9124#0: *28 rewritten data: "/ddd.html", args: "", client: 127.0.0.1, server: www.dongdong.com, request: "GET /aaa.html HTTP/1.1", host: "www.dongdong.com"
+```
+
+rewirte break:直接返回不在执行后面的rewrite，不会再server里边的内容。
 
 
 
