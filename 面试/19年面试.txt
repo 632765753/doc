@@ -1,0 +1,100 @@
+1.什么是断言，使用场景
+断言是java1.4新特性，对参数进行判断,主要用在测试阶段和开发阶段,默认是关闭的，可以使用-ea启用，-ed禁用;语法如下:
+assert <布尔表达式>
+assert <布尔表达式>:<错误信息>
+如果布尔表达式为，程序继续执行，如果布尔表达式为假，抛出AssertionError错误，程序结束运行。
+
+2.实参和形参
+形参指的就是方法的参数列表。
+实参出现在主调函数中，进入被调函数后，实参变量也不能使用。 
+形参和实参的功能是作数据传送。发生函数调用时， 主调函数把实参的值传送给被调函数的形参从而实现主调函数向被调函数的数据传送。
+形参变量只有在被调用时才分配内存单元，在调用结束时， 即刻释放所分配的内存单元。因此，形参只有在函数内部有效。 函数调用结束返回
+实参和形参在数量上，类型上，顺序上应严格一致， 否则会发生“类型不匹配”的错误。
+ 
+3.什么是可变参数
+参数的个数是不固定的(Object ... obj),其实这就是java的语法糖，在后期处理的时候是按照数值处理的。
+(1)一个方法只能有一个可变参数，并且只能是最后一个形参。
+(2)因为底层是按数组处理，所以以下这种并不是重载，会编译报错。
+public void a(String [] args){}
+public void a(String ... args){}
+(3)主函数调用形参是可变函数时，可以传入一个类型一致的数组;也可以传入多个类型一致的实参;也可以不传;
+如果存在这样的两个重载的方法，在不传参数的情况下，调用的是没有参数的函数。
+public void a(){}
+public void a(String ... args){}
+
+4.什么是跨域请求，跨域请求有哪些解决方法
+在 HTML 中，<a/>, <form/>, <img/>, <script/>, <iframe/>, <link/> 等标签以及 Ajax 都可以指向一个资源地址，
+而所谓的跨域请求就是指：当前发起请求的域与该请求指向的资源所在的域不一样。
+这里的域指的是这样的一个概念：我们认为协议 + 域名 + 端口号相同，那么就是同域。
+浏览器的同源策略，会对跨域请求做限制，是出于安全方面的考虑，因为跨域请求有可能被不法分子利用来发动CSRF攻击。
+解决方法：
+1>jsonp
+JSONP 本质上是利用 <script/><img/><iframe/> 等标签不受同源策略限制，可以从不同域加载并执行资源的特性，来实现数据跨域传输。
+JSONP由两部分组成：回调函数和数据。回调函数是当响应到来时应该在页面中调用的函数，而数据就是传入回调函数中的JSON数据。
+JSONP 的理念就是，与服务端约定好一个回调函数名，服务端接收到请求后，将返回一段 Javascript，在这段Javascript代码中调用了约定好的回调函数，
+并且将数据作为参数进行传递。当网页接收到这段 Javascript 代码后，就会执行这个回调函数，这时数据已经成功传输到客户端了
+JSONP 的缺点是：它只支持 GET 请求，而不支持 POST 请求等其他类型的 HTTP 请求
+
+2>nodejs代理
+3>nginx代理
+4>cors(跨域资源共享)
+是W3C标准，它新增的一组HTTP头字段，允许服务端其声明哪些源站有权限访问哪些资源。
+CORS分为简单请求和复杂请求，处理方法也是有不同的，所以我们分别总结:
+
+同时满足以下两个条件，就是简单请求：
+请求方式是下列之一：
+HEAD
+GET
+POST
+HTTP的头信息不超出以下几种字段：
+Accept
+Accept-Language
+Content-Language
+Last-Event-ID
+Content-Type：只限于三个值application/x-www-form-urlencoded、multipart/form-data、text/plain
+实现方法非常简单，只需要把服务器的响应报文里的Access-Control-Allow-Origin设置为*或者包含由 Origin指明的站点。
+
+复杂请求
+如果不是简单请求，那就是复杂请求，比如请求的方法是PUT或者DELETE，
+比如Content-Type字段的类型是application/json，比如设置了自定义头信息。
+复杂请求就是比简单请求多了个预检请求（preflight）而已。
+预检请求就是浏览器先询问服务器，当前网页所在的域名是否在服务器的许可名单之中，以及可以使用哪些HTTP动词和头信息字段。
+只有得到肯定答复，浏览器才会发出正式的XMLHttpRequest请求，否则就报错。
+预检请求用的请求方法是OPTIONS，表示这个请求是用来询问的。头信息里面，关键字段是Origin，表示请求来自哪个源。
+除了Origin字段，还有两个字段非常重要：Access-Control-Request-Method和Access-Control-Request-Headers，
+分别表示允许的请求方法和请求头。
+
+举一个具体的例子：
+现在，我们有一个页面向服务器发送了一个POST请求，并且我们自己定义了一个请求头字段My-HEADER，
+这时候浏览器就会首先发送一个OPTION请求来做预检请求，请求头里有以下字段：
+
+Access-Control-Request-Method: POST
+Access-Control-Request-Headers: My-HEADER
+如果预检请求成功的话，响应头里的内容如下：
+
+Access-Control-Allow-Origin: http://example.com //表明服务器允许http://example.com的请求
+Access-Control-Allow-Methods: POST, GET, OPTIONS //表明服务器可以接受POST, GET和 OPTIONS的请求方法
+Access-Control-Allow-Headers: My-HEADER //传递一个可接受的自定义请求头列表
+Access-Control-Max-Age: 3000000 //告诉浏览器，本次预检请求的响应结果有效时间是多久
+
+5.常见的sql查询优化
+1> 对查询进行优化，应尽量避免全表扫描，首先应考虑在 where 及 order by 涉及的列上建立索引
+2> 很多时候用 exists 代替 in 是一个好的选择
+3> 当索引列有大量数据重复时，SQL查询可能不会去利用索引,创建索引一定要选离散性好的列。
+4> 索引并不是越多越好，索引可以提高相应的select的效率，但同时也降低了insert及update的效率，因为insert或update
+时有可能会重建索引。一个表的索引数最好不要超过6个，太多则应考虑一些不常使用到的列上建的索引是否有必要。
+5> 提高GROUP BY 语句的效率，可以通过将不需要的记录在GROUP BY 之前过滤掉
+
+6.什么情况下索引会失效，会导致扫描全表
+1> a表的name字段有索引，如果使用like '%张三'会导致索引失效，如果like '张三%'则不会;
+2> a表的name字段有索引，where name!='张三'或者name<>'张三'会导致索引失效;
+3> a表的name字段有索引，where name='张三' or name='李四'会导致索引失效;where name in('张三','李四')会导致索引失效
+但是把or改成union all 索引就不会失效
+4> in和not in也会导致索引失效
+5> a表的age字段有索引，where age/20=100会导致索引失效，where age=100*20则不会，
+所以不要在where子句对字段进行表达式操作
+6> a表name有索引，where concat(name,'12')='sdd12' 会导致索引失效。
+7> 不要在 where 子句中的“=”左边进行函数、算术运算或其他表达式运算，否则系统将可能无法正确使用索引。
+8> a表sex有索引，但是sex的值大部分都是0，where sex='0'就会导致索引失效，创建索引一定要选离散性好的列。
+9> a表age字段有索引，where age>1 会导致索引失效，但是如果where age>1 and age<10则会使用索引。 
+
