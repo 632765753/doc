@@ -81,7 +81,11 @@ LC_IDENTIFICATION="en_US.UTF-8"
 LC_ALL=
 ```
 
+### 查看ip
 
+ifconfig 查看内网ip
+
+curl ident.me 查看外网ip 
 
 ## 脚本
 
