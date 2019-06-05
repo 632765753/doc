@@ -171,7 +171,9 @@ Java的线程是映射到操作系统的原生线程之上的，如果要阻塞或唤醒一个线程，都需要操作
 12.spring项目打包
 mvn clean package spring-boot:repackage -DskipTests
 
-13.java线程有几种状态
+13.线程有几种状态
+java中，线程的状态使用一个枚举类型来描述的。这个枚举一共有6个值
+NEW:新建;RUNNABLE:运行;BLOCKED:阻塞;WAITING:等待;TIMED_WAITING:定时等待;TERMINATED:结束
 
 14.jvm内存模型
 
@@ -180,6 +182,9 @@ mvn clean package spring-boot:repackage -DskipTests
 16.springboot的启动过程介绍一下
 
 17.java类加载机制
+
+18.如何进入docker
+docker exec -it  58af372dbc7c  /bin/bash
 
 
 
