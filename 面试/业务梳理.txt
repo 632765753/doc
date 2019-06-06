@@ -175,16 +175,13 @@ mvn clean package spring-boot:repackage -DskipTests
 java中，线程的状态使用一个枚举类型来描述的。这个枚举一共有6个值
 NEW:新建;RUNNABLE:运行;BLOCKED:阻塞;WAITING:等待;TIMED_WAITING:定时等待;TERMINATED:结束
 
-14.jvm内存模型
+14.java内存模型
 
-15.redis的持久化方式有哪些
+15.java内存结构
 
-16.springboot的启动过程介绍一下
+16.redis的持久化方式有哪些
 
-17.java类加载模型
-避免一个类被加载多次；关键的类只能由启动类加载器去加载，为了安全考虑
-其次是考虑到安全因素，java核心api中定义类型不会被随意替换，假设通过网络传递一个名为java.lang.Integer的类，通过双亲委托模式传递到启动类加载器，而启动类加载器在核心Java API发现这个名字的类，
-发现该类已被加载，并不会重新加载网络传递的过来的java.lang.Integer，而直接返回已加载过的Integer.class，这样便可以防止核心API库被随意篡改。
+17.springboot的启动过程介绍一下
 
 18.如何进入docker
 docker exec -it  58af372dbc7c  /bin/bash
@@ -192,7 +189,12 @@ docker exec -it  58af372dbc7c  /bin/bash
 19.redis数据类型
 字符串(String) 哈希(Hash) 列表(List) 无序集合(Set) 有序集合(ZSet)
 
-20.类加载过程
+20.java类加载模型
+避免一个类被加载多次；关键的类只能由启动类加载器去加载，为了安全考虑
+其次是考虑到安全因素，java核心api中定义类型不会被随意替换，假设通过网络传递一个名为java.lang.Integer的类，通过双亲委托模式传递到启动类加载器，而启动类加载器在核心Java API发现这个名字的类，
+发现该类已被加载，并不会重新加载网络传递的过来的java.lang.Integer，而直接返回已加载过的Integer.class，这样便可以防止核心API库被随意篡改。
+
+21.类加载过程
 加载 
 
 验证
